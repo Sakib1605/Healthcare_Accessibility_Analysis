@@ -1,0 +1,1699 @@
+---
+title: "Optimizing Healthcare Services in Toronto"
+subtitle: "By Predicting New Facility Locations and Shortest Routes"
+author: "Mohammad Sakibul Islam (1265299) and Sonal Sushil Gupta (1258628)"
+date: "2024-08-16"
+output: pdf_document
+---
+
+# Executive Summary
+Healthcare Accessibility is essential for maintaining good health, managing chronic conditions, and getting timely treatment for urgent health issues. In a large and diverse city like Toronto, access to healthcare services varies significantly, which can lead to differences in health outcomes. These disparities are particularly severe for vulnerable groups like the elderly, who may have mobility challenges or need frequent medical care, and low-income residents, who may struggle with financial or transportation barriers.
+
+Toronto’s healthcare access issues are further complicated by the city’s varied geography and the uneven distribution of healthcare facilities, which are often concentrated in certain areas while leaving other regions underserved. This uneven distribution can result in delays in treatment, higher rates of preventable diseases, and poorer overall health outcomes for those in underserved neighborhoods.
+
+This project aims to tackle these challenges by analyzing healthcare accessibility across Toronto’s neighborhoods. The project has two main goals: to propose new locations for healthcare facilities in areas where access is limited, and to identify the shortest routes for people to reach existing healthcare services. By focusing on areas with a high concentration of vulnerable populations—especially the elderly and low-income households—the project seeks to ensure that new healthcare facilities are placed where they are most needed.
+
+Key findings from the analysis revealed that the use of advanced spatial interpolation methods, such as Kriging and Inverse Distance Weighting (IDW), identified critical gaps in healthcare access. Kriging, which considers spatial correlations and trends, was particularly effective in highlighting underserved regions, especially in the northern and eastern parts of the city. On the other hand, IDW, which focuses on proximity, also identified underserved areas but with a slightly stronger emphasis on locations closer to existing facilities. The analysis also identified the shortest and most efficient routes to healthcare facilities, ensuring that emergency response times can be optimized.
+
+In summary, this project provides actionable insights for city planners and policymakers, offering practical solutions to improve healthcare accessibility in Toronto. The findings aim to contribute to the development of a more equitable healthcare system, ensuring that all residents, regardless of their location, age, or income, have timely and reliable access to healthcare services.
+
+## Objectives
+- **Identify Vulnerable Populations:** Analyze demographic data to pinpoint regions with high concentrations of elderly and low-income residents, who may be more vulnerable to healthcare access disparities.
+- **Determine Optimal Locations for New Healthcare Facilities:** Use geospatial analysis to identify areas in Toronto that are currently underserved by healthcare facilities and suggest locations for new facilities to improve access.
+- **Optimize Emergency Response Times:** Analyze road network data to determine the shortest and most efficient routes to healthcare facilities, ensuring that emergency response times are minimized.
+
+# 1. Introduction
+## 1.1. Background
+Toronto is one of Canada's most populated city, with over 2.9 million people living in 140 different neighborhoods. It’s a city known for its diversity, with people from different backgrounds, incomes, and age groups. This diversity is one of Toronto’s strengths, but it also means that healthcare planning must take many different needs into account.
+
+As the city continues to grow quickly, especially in crowded and low-income areas, there is more pressure on the healthcare system. While Toronto is known for having great healthcare services, not everyone has equal access to them. Some neighborhoods, particularly those with many elderly people, immigrants, and low-income families, face serious challenges in getting the healthcare they need. These challenges can include difficulty getting around, language barriers, lack of transportation, and not being able to afford care, all of which can lead to delays or missing out on medical help.
+
+Because of these problems, it’s important to use data to make smarter decisions about healthcare in Toronto. This project aims to dig deeper into the city’s healthcare access issues by using advanced mapping techniques. The goal is to find out where new healthcare facilities should be placed to help the people who need them most. Ultimately, the project aims to help create a fairer healthcare system in Toronto, making sure everyone, no matter their income or where they live, can get the healthcare services they need to live healthy lives.
+
+## 1.2. Literature Review
+Shah et al. (2016) studied healthcare access in Canadian cities, including Toronto, and found that some neighborhoods, especially those with lower-income residents, had significant barriers to accessing healthcare. They emphasized the need for targeted healthcare efforts in these areas to reduce health disparities.
+
+Luo and Wang (2019) looked into how vulnerable populations, like low-income families, face inequalities in accessing primary care. Their study showed that both socio-economic factors and the location of healthcare facilities play a big role in these inequalities. They suggested using advanced geospatial tools to better understand and address these issues, particularly in cities like Toronto.
+
+In Ontario, Laverty and Dixon (2021) examined how well hospitals serve the population and found that some areas, especially on the outskirts of cities, were underserved. This led to longer travel times and possibly worse health outcomes for people in those areas. Their study highlighted the importance of strategically placing new healthcare facilities to ensure better access across the province.
+
+Ahmad, Nazir, and Shafiq (2022) introduced the Enhanced Two-Step Floating Catchment Area (E2SFCA) method for measuring spatial accessibility to primary healthcare. Their study, conducted in HD Kote, Mysore (India), demonstrated how advanced spatial analysis techniques could more accurately identify areas with poor access to healthcare services. The E2SFCA method provided a more detailed understanding of spatial accessibility, which could be applied to urban settings like Toronto to address healthcare disparities.
+
+Another study by Sun et al (2021) developed a data-driven method for measuring accessibility to healthcare using a spatial interpolation model, specifically employing Kriging. This geostatistical technique allowed them to account for spatial correlations and provide more accurate estimates of accessibility. The research emphasized the importance of incorporating spatial data to identify healthcare accessibility gaps more precisely, particularly in densely populated urban areas. The model they developed offers a detailed understanding of how accessibility varies across different parts of a city, making it especially relevant for addressing healthcare disparities in Toronto.
+
+Other studies have shown that limited access to healthcare isn't just about distance; it's also influenced by factors like income, availability of transportation, and the number of healthcare providers in an area. These factors contribute to significant health disparities, particularly in neighborhoods with vulnerable populations like the elderly and low-income residents.
+
+Building on these researches, this project uses advanced geospatial techniques to better understand healthcare access in Toronto. By identifying underserved areas and proposing new locations for healthcare facilities, the project aims to reduce existing disparities and ensure that all residents, no matter where they live or their socio-economic status, can access the healthcare they need.
+
+## 1.3. Motivation
+While there has been significant research on healthcare access in cities, gaps remain, especially in using advanced mapping techniques to address inequalities in rapidly growing cities like Toronto. Most studies have identified underserved neighborhoods but often lack tools like Kernel Density Estimation (KDE) and Multi-Criteria Decision Analysis (MCDA), which provide deeper insights into how access varies over time and across different areas.
+
+Another gap is the limited focus on optimizing emergency response times in healthcare planning, which is crucial in a city like Toronto, where traffic and geography can delay emergency services. Additionally, many studies don’t fully address the needs of vulnerable groups, such as the elderly and low-income residents, leading to ongoing disparities in healthcare access.
+
+This project aims to fill these gaps by using advanced mapping techniques and focusing on emergency response, and the specific needs of vulnerable populations. In this project, vulnerable populations are defined as elderly individuals aged 65 and above and low-income households, identified based on the median income within each Census Tract (CT). A CT is a geographic area defined by Statistics Canada, typically including 2,500 to 8,000 people, used for collecting and analyzing data. By analyzing healthcare access within Toronto’s CTs, the project seeks to ensure that new healthcare facilities are placed where they are most needed, helping to build a more equitable healthcare system for all residents.
+
+# 2. Data Sources
+## 2.1. Healthcare Locations Data
+This dataset was sourced from the Ministry of Health Service Provider Locations database updated in 2024, which includes detailed information on various healthcare facilities across Toronto. The dataset provides the geographic coordinates, facility types (e.g., hospitals, clinics, pharmacies), and other relevant attributes. This data was essential for mapping the current distribution of healthcare services and identifying potential gaps in service provision (Ministry of Health Ontario, 2024).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning=FALSE)
+
+#install.packages("cancensus")
+library(cancensus)
+library(opendatatoronto)
+library(dplyr)
+library(OpenStreetMap)
+library(ggplot2)
+library(terra)
+library(grid)
+library(osmdata)
+library(terra)
+library(readxl)
+library(tmap)
+library(readr)
+library(osmdata)
+library(sf)
+library(terra)
+library(spData) 
+library(tidyverse)
+library(spatstat)
+library(sp)
+library(dplyr)
+library(spDataLarge)
+library(grid)
+library(readr)
+library(tmap)
+library(ggplot2)
+library(rJava)
+library(tmaptools)
+library(units)
+library(foreign)
+library(pROC)
+library(lgr)
+library(mlr3)
+library(mlr3spatiotempcv)
+library(mlr3learners)
+library(mlr3viz)
+library(sperrorest)
+library(mlr3tuning)
+library(caret)
+library(MLeval)
+library(glmnet)
+library(wesanderson)
+library(ggplot2)
+library(scales)
+library(tmap)
+library(gstat)
+library(sf)
+library(dplyr)
+library(stringr)
+library(gridExtra)
+library(sf)
+library(spatstat)
+library(ggrepel)
+library(leaflet)
+library(sf)
+library(dplyr)
+library(tmap)
+library(igraph)
+library(sfnetworks)
+library(tidygraph)
+library(igraph)
+library(sf)
+library(sfnetworks)
+library(tidygraph)
+library(igraph)
+library(dplyr)
+library(units)
+library(sf)
+library(dplyr)
+library(spsurvey)  # For random point generation
+
+library(sf)
+library(dplyr)
+library(gstat)
+```
+
+```{r, include=FALSE}
+# List available census datasets
+datasets <- list_census_datasets()
+print(datasets)
+
+# List available census vectors for a specific dataset
+vectors <- list_census_vectors(dataset = 'CA21')
+print(vectors)
+
+# Set your API key
+options(cancensus.api_key = 'CensusMapper_95054dd5d1829bcff0fb553c03547499')
+
+# Define the dataset and vectors for population
+dataset <- 'CA21'  # 2016 Census
+vector <- 'v_CA21_1'  # Population vector
+
+# Define the vectors for income data
+vector_income <- 'v_CA21_560'  #Income vector
+
+# Define the vectors for population age>=65 data
+vector_old_age <- 'v_CA21_251'  #age>65 vector
+
+
+# Define the geographic region (Toronto)
+toronto_region <- list(CMA = "35535")  # CMA code for Toronto
+
+# Fetch the data at the postal code level for population
+toronto_population <- get_census(
+  dataset = dataset,
+  regions = toronto_region,
+  vectors = vector,
+  level = "CT",  # Dissemination Area (can use "CSD" for Census Subdivision or "CT" for Census Tract if needed)
+  geo_format = "sf"
+)
+
+# Fetch the income data at the Census Tract level for income
+toronto_income <- get_census(
+  dataset = dataset,
+  regions = toronto_region,
+  vectors = vector_income,
+  level = "CT",  # Census Tract level
+  geo_format = "sf"
+)
+
+# Fetch the population data at the Census Tract level for old age
+toronto_old_age <- get_census(
+  dataset = dataset,
+  regions = toronto_region,
+  vectors = vector_old_age,
+  level = "CT",  # Census Tract level
+  geo_format = "sf"
+)
+
+# Rename the population column to a simpler name
+colnames(toronto_population)[which(colnames(toronto_population) == "v_CA21_1: Population, 2021")] <- "Population_2021"
+
+
+# Rename the income column to a simpler name
+colnames(toronto_income)[which(colnames(toronto_income) == 
+"v_CA21_560: Median total income in 2020 among recipients ($)")] <- "Income_2021"
+
+# Rename the population age column column to a simpler name
+colnames(toronto_old_age)[which(colnames(toronto_old_age) == "v_CA21_251: 65 years and over")] <- "Old_Population_2021"
+
+toronto_bbox <- c(left = -79.63928, right = -79.11322, bottom = 43.57961, top = 43.85544)
+
+# Query OpenStreetMap for administrative boundaries of Toronto
+toronto_border <- opq(bbox = toronto_bbox, timeout=120) |>
+  add_osm_feature(key = "boundary", value = "administrative") |> 
+  add_osm_feature(key = "admin_level", value = "6") |> 
+  add_osm_feature(key = "type", value = "boundary") |> 
+  add_osm_feature(key = "wikidata", value = "Q172") |> 
+  add_osm_feature(key = "name:en", value = "Toronto") |> 
+  osmdata_sf() |>
+  (\(x) x$osm_multipolygons)() 
+
+toronto_border = st_transform(toronto_border, crs = 4326)
+toronto_basemap = read_osm(toronto_border, type = "esri-topo")
+
+
+toronto_border = st_transform(toronto_border, st_crs(toronto_basemap))
+toronto_cropped <- st_crop(toronto_basemap, toronto_border)
+
+toronto_population_transform = st_transform(toronto_population, st_crs(toronto_basemap))
+
+toronto_population_cropped <- st_intersection(toronto_population_transform, toronto_border)
+
+toronto_population_cropped <- toronto_population_cropped %>%
+  dplyr::select(CSD_UID, CMA_UID, name, `Area..sq.km.`, `Shape.Area`, Population_2021, geometry)
+
+toronto_income_transform = st_transform(toronto_income, st_crs(toronto_basemap))
+
+toronto_income_cropped <- st_intersection(toronto_income_transform, toronto_border)
+
+toronto_income_cropped <- toronto_income_cropped %>%
+  dplyr::select(CSD_UID, CMA_UID, name, `Area..sq.km.`, `Shape.Area`, Income_2021, geometry)
+
+toronto_old_age_transform = st_transform(toronto_old_age, st_crs(toronto_basemap))
+
+toronto_old_age_cropped <- st_intersection(toronto_old_age_transform, toronto_border)
+
+toronto_old_age_cropped <- toronto_old_age_cropped %>%
+  dplyr::select(CSD_UID, CMA_UID, name, `Area..sq.km.`, `Shape.Area`, Old_Population_2021, geometry)
+
+
+toronto_population_cropped <- toronto_population_cropped %>%
+  arrange(name)
+
+toronto_income_cropped <- toronto_income_cropped %>%
+  arrange(name)
+
+toronto_old_age_cropped <- toronto_old_age_cropped %>%
+  arrange(name)
+
+
+# Perform spatial join for population and income data
+# Join based on spatial intersection or containment
+toronto_merged <- (toronto_population_cropped)
+
+toronto_temp <- st_join(toronto_population_cropped, toronto_income_cropped["Income_2021"], join = st_within)
+
+toronto_merged <- st_join(toronto_temp, toronto_old_age_cropped["Old_Population_2021"], join = st_within)
+
+
+# Search for packages related to "wards"
+search_results <- search_packages("wards")
+
+# Display the search results
+(search_results)
+
+results <- search_packages("postal code boundaries")
+
+# Get the package for Toronto wards from the Toronto Open Data Portal
+package <- show_package("5e7a8234-f805-43ac-820f-03d7c360b588")
+
+# Get all the resources for this package
+resources <- list_package_resources(package)
+
+# Identify the resource with spatial data for the wards (usually it's the one with the word "shapefile" or "geojson")
+wards_resource <- resources[resources$id == "737b29e0-8329-4260-b6af-21555ab24f28", ]
+
+# Download the spatial data
+wards_data <- get_resource(wards_resource)
+
+wards_data <- wards_data %>%
+  rename(WARD_NAME = AREA_NAME) %>% dplyr::select(WARD_NAME)
+
+## Hospital data
+healthcare_facilities <- read.csv("Ministry_of_Health_service_provider_locations.csv")
+
+healthcare_facilities_sf <- st_as_sf(healthcare_facilities, coords = c("X", "Y"), crs = 3857)
+
+# Check the CRS of healthcare_facilities_sf
+st_crs(healthcare_facilities_sf)
+
+# Transform the CRS to WGS 84 (EPSG:4326) from EPSG:3857 (Web Mercator)
+healthcare_facilities_sf <- st_transform(healthcare_facilities_sf, 4326)
+
+# Filter healthcare facilities that are within the wards
+within_matrix <- st_within(healthcare_facilities_sf, wards_data, sparse = FALSE)
+healthcare_facilities_within_wards <- healthcare_facilities_sf[apply(within_matrix, 1, any), ]
+
+# Filter based on SERVICE_TY column
+services_of_interest <- c("Community Health Centre", "Community Support Services", 
+                          "Family Health Team", "Hospital - Corporation", "Hospital - Site", 
+                          "Independent Health Facility")
+
+wards_data_new <- get_resource(wards_resource)
+
+# Perform spatial join
+healthcare_facilities_within_wards <- st_join(healthcare_facilities_within_wards, wards_data_new, join = st_within) %>% 
+  rename(ward_id = X_id)
+
+toronto_wards <- read_xlsx("25-WardNames-Numbers.xlsx") |>
+  rename(Word_Number = `Ward Number`,
+         Ward_Name = `Ward Name`)
+
+healthcare_facilities_with_ward_names <- healthcare_facilities_within_wards %>%
+  left_join(toronto_wards, by = c("ward_id" = "Word_Number"))
+
+# Count facilities per ward including Ward Name
+ward_facility_count <- healthcare_facilities_with_ward_names %>%
+  group_by(Ward_Name) %>%
+  summarise(facility_count = n()) 
+
+# Create a buffer of 200 meters around each point
+buffered_healthcare <- st_buffer(healthcare_facilities_with_ward_names, dist = 200)
+
+# Identify clusters and select one representative point per cluster
+# Combine all buffered areas into one single geometry
+buffer_union <- st_union(buffered_healthcare)
+
+# Find points within each buffered area
+overlapping_points <- st_intersects(healthcare_facilities_with_ward_names, buffered_healthcare, sparse = TRUE)
+cluster_indices <- which(sapply(overlapping_points, length) > 1)
+
+# Create a logical vector to filter out duplicate points
+keep_points <- rep(TRUE, nrow(healthcare_facilities_with_ward_names))
+keep_points[cluster_indices] <- FALSE
+
+# Filter out duplicate points
+unique_healthcare_facilities <- healthcare_facilities_with_ward_names[keep_points, ]
+```
+
+```{r, include=FALSE, fig.cap="Different Health Service Facilities within Toronto",  fig.width=6, fig.height=5}
+tm_shape(toronto_cropped) +
+  tm_rgb() +
+  tm_shape(toronto_merged) +
+  tm_borders(col = "black") +
+  tm_shape(unique_healthcare_facilities) +
+  tm_dots(col = "SERVICE_TY", palette = "magma", size = 0.01, title = "Service Type") +
+  tm_layout(title = "Different Health Service Facilities within Toronto",
+            frame = TRUE,
+            legend.outside = TRUE, 
+            legend.position = c("right", "bottom"),
+            legend.outside.size   = 0.4) 
+```
+
+## 2.2. Census Data
+Demographic data, including population distribution and income levels, was obtained from the City of Toronto's Ward Profiles. This dataset includes detailed information on the number of residents, age distribution, income levels, and other socio-economic indicators for each region in Toronto. This data, collected for 2021, is used to identify regions with high concentrations of vulnerable populations, which are at greater risk of healthcare access disparities (City of Toronto, 2024).
+
+### 2.2.1. Population Distribution
+The Figure 1 titled **"Toronto CT Population"** illustrates the distribution of total population across different Census Tracts (CTs) in Toronto. Each CT is represented as a polygon on the map, and the population within each tract is visualized using a color gradient. The gradient ranges from light beige, indicating lower population densities (0 to 2,000 people), to dark red, representing higher population densities (12,000 to 14,000 people).
+
+```{r, echo=FALSE, fig.cap="Population Distribution across census tracts in Toronto", fig.width=5, fig.height=4}
+tm_shape(toronto_cropped) +
+  tm_rgb() +  # Display the basemap
+  tm_shape(toronto_merged) +
+  tm_fill(col = "Population_2021", palette = "Reds", title = "Population") +  # Fill CTs based on population
+  tm_borders(col = "black") +  # Plot ward boundaries
+  tm_layout(title = "Population Distribution", legend.outside = FALSE, frame = FALSE,
+            legend.position = c("right", "bottom"))
+```
+
+#### Key Observations:
+- **High Population Density Areas:** The dark red regions on the map, primarily located in central Toronto, indicate areas with a high population density, where each CT has between 12,000 and 14,000 residents. These areas are likely to have a greater demand for healthcare services due to the higher number of residents.
+- **Moderate to Low Population Density Areas:** The lighter shades of orange and beige scattered across the map represent CTs with lower population densities. These areas may have less strain on healthcare resources but could also be underserved if healthcare facilities are concentrated in more densely populated areas.
+- **Spatial Distribution:** The population distribution is not uniform across Toronto. The downtown core and certain parts of the city exhibit higher population densities, while suburban and outlying areas show lower densities. This spatial variation is crucial for planning healthcare facilities, as it highlights where healthcare demand is likely to be highest.
+
+This plot is a foundational visualization that provides a clear overview of where people live in Toronto. Understanding this distribution is key to any spatial analysis related to healthcare access, as it directly influences where facilities should be located to best serve the population.
+
+### 2.2.2. Income Distribution
+
+The Figure 2 titled **"Toronto CT Income Levels"** illustrates the distribution of income levels across different Census Tracts (CTs) in Toronto. Each CT is represented as a polygon on the map, and the income levels within each tract are visualized using a color gradient. The gradient ranges from light beige, indicating areas with very high income, to dark red, representing areas with very low income.
+
+```{r, include=FALSE}
+# Calculate the average of the non-NA values in the Income_2021 column
+average_income <- mean(toronto_merged$Income_2021, na.rm = TRUE)
+
+# Replace NA values with the calculated average
+toronto_merged <- toronto_merged %>%
+  mutate(Income_2021 = ifelse(is.na(Income_2021), average_income, Income_2021))
+
+# Categorize the Income_2021 values
+toronto_merged <- toronto_merged %>%
+  mutate(Income_Category = case_when(
+    Income_2021 <= quantile(Income_2021, 0.2, na.rm = TRUE) ~ "Very Low",
+    Income_2021 <= quantile(Income_2021, 0.4, na.rm = TRUE) ~ "Low",
+    Income_2021 <= quantile(Income_2021, 0.6, na.rm = TRUE) ~ "Medium",
+    Income_2021 <= quantile(Income_2021, 0.8, na.rm = TRUE) ~ "High",
+    TRUE ~ "Very High"
+  ))
+```
+
+
+```{r, echo=FALSE, fig.cap="Income Level Distribution across Toronto CT", fig.width=5, fig.height=4}
+# Create the  plot with categorized income levels and legend outside
+tm_shape(toronto_cropped) +
+  tm_rgb() +  # Display the basemap
+  tm_shape(toronto_merged) +
+  tm_fill(col = "Income_Category", palette = "Reds", title = "Income Level") +  # Fill CTs based on categorized income
+  tm_borders(col = "black") +  # Plot ward boundaries
+  tm_layout(title = "Income Distribution", legend.outside = FALSE, frame = FALSE,
+            legend.position = c("right", "bottom"))
+```
+
+#### Key Observations:
+- **Very Low-Income Areas:** The dark red regions on the map highlight CTs where income levels are very low. These areas are predominantly located in the northern and central parts of Toronto. Residents in these areas may face greater barriers to accessing healthcare, necessitating targeted interventions.
+- **Moderate to High-Income Areas:** The lighter shades of beige and orange represent CTs with higher income levels. These areas are scattered throughout the city but are more concentrated in certain pockets, particularly in the central and western regions of Toronto. Residents in these areas typically have better access to healthcare services due to higher income levels.
+- **Spatial Income Disparities:** The map reveals significant disparities in income distribution across Toronto. These disparities are crucial for understanding the socio-economic factors that influence healthcare accessibility, as lower-income areas may be underserved by healthcare facilities.
+
+This plot is essential for understanding the socio-economic landscape of Toronto. By visualizing income distribution, it provides insights into which area may require more healthcare services due to economic disadvantages. This information is vital for planning the equitable distribution of healthcare facilities across the city.
+
+## 2.3. Road Networks Data
+Traffic volume and road network data were sourced from the City of Toronto's open data portal. This dataset includes detailed information on road segments, traffic volumes, and intersections across Toronto. The road network data was critical for analyzing emergency response times and determining the shortest routes to healthcare facilities (City of Toronto, n.d.).
+
+# 3. Data Preprocessing
+
+## 3.1. Healthcare Data Preprocessing
+The healthcare facilities data was filtered to include only relevant service types, such as hospitals, clinics, and pharmacies. Facilities that did not provide essential healthcare services were excluded from the analysis. The dataset was then transformed to the WGS 84 CRS, which is compatible with the other datasets used in this project.
+
+After preprocessing, the Figure 3 titled **"Different Health Service Facilities within Toronto Wards"** was generated to visualize the distribution of the selected healthcare services across the city. Each point on the map represents a specific type of healthcare facility, categorized by different colors as indicated in the legend.
+
+
+```{r, include=FALSE}
+filtered_healthcare_facilities <- healthcare_facilities_within_wards %>%
+  filter(SERVICE_TY %in% services_of_interest)
+```
+
+```{r, echo=FALSE, fig.cap="Health Service Facilities within Toronto", fig.width=6, fig.height=5}
+tm_shape(toronto_cropped) +
+  tm_rgb() +
+  tm_shape(toronto_merged) +
+  tm_borders(col = "darkgrey",lwd =1) +
+  tm_shape(filtered_healthcare_facilities) +
+  tm_dots(col = "SERVICE_TY", palette = "magma", size = 0.02, title = "Service Type") +
+  tm_layout(title = "Different Health Service Facilities",frame =FALSE) +
+  tm_legend(outside = FALSE, legend.position = c("right", "bottom"))
+
+```
+
+- **Filtered Service Types:** The map displays only those healthcare facilities that were deemed essential for the analysis, such as Family Health Teams, Independent Health Facilities, Community Health Centres, Community Support Services, and hospitals (both Corporation and Site levels). This focused approach helps in assessing the accessibility of critical healthcare services across Toronto.
+- **Geographic Distribution:** The distribution of these essential healthcare facilities varies significantly across Toronto. While the downtown core and certain central areas have a high density of facilities, many suburban and outlying areas have fewer facilities. This uneven distribution is crucial for identifying underserved areas.
+
+This map is a critical output of the data preprocessing phase, highlighting the geographic distribution of key healthcare services across Toronto. It serves as a foundation for further analysis, such as determining areas with inadequate access to healthcare facilities and planning new service locations.
+
+## 3.2. Population and Income Data Preprocessing
+The population and income data were extracted from the CanCensus where preprocessing involved setting appropriate column headers, filtering the data to select relevant rows (e.g., those related to elderly populations and income levels), and transforming the data to the WGS 84 CRS. Additional preprocessing steps included handling missing values, normalizing income data, and aggregating population data by ward.
+
+## 3.3. Road Networks Data Preprocessing
+The road network data required significant preprocessing to ensure compatibility with the healthcare and demographic datasets. This involved filtering the data to include only major roads and intersections relevant to emergency response routes. Traffic volume data was aggregated by road segment, and the dataset was transformed to the WGS 84 CRS. Additional steps included calculating the distances between healthcare facilities and key intersections, which were used in the analysis of emergency response times.
+
+# 4. Exploratory Data Analysis (EDA)
+
+## 4.1. Income Analysis (KDE)
+The population and income data were analyzed to identify wards with high concentrations of vulnerable populations. The analysis focused on elderly residents and low-income households, as these groups are more likely to experience barriers to healthcare access.
+
+The Figure 4, visualizes the density of low-income households across the city. The map uses a color gradient to represent areas with varying levels of low-income density, ranging from yellow (very high income) to dark red (extremely low income).
+
+```{r, include=FALSE}
+# Calculate centroids of 'toronto_merged'
+toronto_merged_centroids <- st_centroid(toronto_merged)
+
+toronto_merged_centroids <- st_transform(toronto_merged_centroids, crs = st_crs(wards_data))
+
+# Perform spatial join to fetch ward names based on centroids
+toronto_merged_with_wards <- st_join(toronto_merged_centroids, wards_data["WARD_NAME"], join = st_within)
+
+
+# Identify rows with NA in WARD_NAME
+na_rows <- which(is.na(toronto_merged_with_wards$WARD_NAME))
+
+# If there are any NA rows, find the nearest ward for those rows
+if (length(na_rows) > 0) {
+  # Find the nearest ward for NA rows
+  nearest_wards <- st_nearest_feature(toronto_merged_centroids[na_rows, ], wards_data)
+  
+  # Update WARD_NAME for NA rows with the nearest ward's name
+  toronto_merged_with_wards$WARD_NAME[na_rows] <- wards_data$WARD_NAME[nearest_wards]
+}
+
+# Identify rows with NA in AREA_NAME
+na_rows <- which(is.na(toronto_merged_with_wards$WARD_NAME))
+
+# Find the nearest ward for those NA rows
+nearest_wards <- st_nearest_feature(toronto_merged_centroids[na_rows, ], wards_data)
+
+# Update AREA_NAME for NA rows with the nearest ward's name
+toronto_merged_with_wards$WARD_NAME[na_rows] <- wards_data$WARD_NAME[nearest_wards]
+
+# Join the updated ward names back to the original 'toronto_merged'
+toronto_merged <- cbind(toronto_merged, st_drop_geometry(toronto_merged_with_wards["WARD_NAME"]))
+
+# Aggregate average income for each ward
+ward_income_avg <- toronto_merged %>%
+  group_by(WARD_NAME) %>%
+  summarize(avg_income = mean(Income_2021, na.rm = TRUE))
+
+# Convert sf objects to data frames for the join
+toronto_merged_df <- st_set_geometry(toronto_merged, NULL)
+wards_data_df <- st_set_geometry(ward_income_avg, NULL)
+
+# Perform the join operation
+joined_df <- toronto_merged_df %>%
+  left_join(wards_data_df, by = "WARD_NAME")
+
+# Join by row index geometry to make it sf
+joined_sf <- cbind(joined_df, toronto_merged$geometry)
+
+# Ensure joined_sf is an sf object
+joined_sf <- st_as_sf(joined_sf)
+
+# Transform coordinates to appropriate CRS 
+joined_sf <- st_transform(joined_sf, crs = 4326)
+
+
+#Low income indicator
+# Add the new column based on the condition
+joined_sf <- joined_sf %>%
+  mutate(low_income = if_else(avg_income <= Income_2021, "no", "yes"))
+
+# Convert 'low_income' to binary numeric format
+joined_sf <- joined_sf %>%
+  mutate(low_income_num = if_else(low_income == "yes", 1, 0))
+
+# Calculate centroids of each CT
+joined_sf$centroids <- st_centroid(joined_sf)
+
+# Extract coordinates
+joined_sf <- joined_sf %>%
+  mutate(X = st_coordinates(centroids)[, 1],
+         Y = st_coordinates(centroids)[, 2])
+
+# Define spatial extent based on coordinates
+xrange <- c(min(joined_sf$X, na.rm = TRUE), max(joined_sf$X, na.rm = TRUE))
+yrange <- c(min(joined_sf$Y, na.rm = TRUE), max(joined_sf$Y, na.rm = TRUE))
+
+
+# Create ppp object for spatstat
+low_income_ppp <- ppp(joined_sf$X[joined_sf$low_income_num == 1], 
+                      joined_sf$Y[joined_sf$low_income_num == 1],
+                      window = owin(xrange, yrange))
+
+# Perform kernel density estimation (KDE) using spatstat
+low_income_density <- density(low_income_ppp, sigma = 0.02)
+
+# Convert to raster for plotting with tmap
+low_income_density_raster <- rast(as.im(low_income_density))
+
+# Assign CRS to low_income_density_raster
+crs(low_income_density_raster) <- "EPSG:4326"
+
+# Transform toronto_merged to EPSG:4326
+toronto_merged_transformed <- st_transform(toronto_merged, crs = "EPSG:4326")
+
+# Crop the raster to the bounding box of toronto_merged_transformed
+low_income_density_raster <- crop(low_income_density_raster, toronto_merged_transformed)
+
+# Mask the raster to the bounding box of toronto_merged_transformed
+low_income_density_raster <- mask(low_income_density_raster, toronto_merged_transformed)
+```
+
+
+```{r, echo=FALSE, fig.cap="Heatmap of Low Income Density in Toronto", fig.width=5, fig.height=4}
+# Plot heatmap of low income density using tmap
+tm_shape(toronto_cropped) +
+  tm_rgb() +
+  tm_shape(toronto_merged) +
+  tm_borders(col = "black") +
+  tm_shape(low_income_density_raster) +
+  tm_raster(palette = c( "yellow", "orange", "red", "darkred"),
+            alpha = 0.7,
+            labels = c("very high", "high", "medium", "low", "very low", "extremely low"),
+            title = "Low Income Density") +
+  tm_shape(wards_data) +
+  tm_borders() +
+  tm_layout(title = "Low Income Density Distribution", 
+            frame = FALSE,
+            legend.position = c("right","bottom"),
+            legend.text.size = 0.5)
+
+```
+
+#### Key Observations:
+- **High Density of Low-Income Households:** The dark red areas, particularly in the central and western parts of the city, indicate regions where there is a high concentration of low-income households. These areas are likely to face greater challenges in accessing healthcare services due to economic disadvantages.
+- **Moderate to Low Density Areas:** The orange and yellow areas represent regions with fewer low-income households. These areas are spread across the northern and eastern parts of Toronto and generally indicate higher income levels, which might correlate with better access to healthcare services.
+- **Spatial Disparity:** The heatmap clearly highlights the spatial disparity in income distribution across Toronto. Regions with higher concentrations of low-income households may require more targeted interventions to improve healthcare accessibility.
+
+
+## 4.2. Elder Population Analysis (KDE)
+Kernel Density Estimation (KDE) was applied to the Old Population data to identify areas with high and low densities of old population. The KDE analysis provided a clear visualization of underserved regions, which are prime candidates for the placement of new healthcare facilities.
+
+The Figure 5, visualizes the density of the elderly population across the city. The map uses a color gradient to represent areas with varying levels of elder population density, ranging from yellow (very low density) to dark red (very high density).
+
+
+```{r, echo=FALSE,include = FALSE}
+## KDE Old population
+
+# Aggregate average income for each ward
+ward_old_pop_avg <- toronto_merged %>%
+  group_by(WARD_NAME) %>%
+  summarize(old_pop_avg = mean(Old_Population_2021, na.rm = TRUE))
+
+# Convert sf objects to data frames for the join
+wards_data_df <- st_set_geometry(ward_old_pop_avg, NULL)
+
+# Perform the join operation
+joined_df <- joined_df %>%
+  left_join(wards_data_df, by = "WARD_NAME")
+
+# Join by row index geometry to make it sf
+joined_sf <- cbind(joined_df, toronto_merged$geometry)
+
+# Ensure joined_sf is an sf object
+joined_sf <- st_as_sf(joined_sf)
+
+# Transform coordinates to appropriate CRS 
+joined_sf <- st_transform(joined_sf, crs = 4326)
+
+
+#Low income indicator
+# Add the new column based on the condition
+joined_sf <- joined_sf %>%
+  mutate(old_population = if_else(old_pop_avg >= Old_Population_2021, "no", "yes"))
+
+# Convert 'low_income' to binary numeric format
+joined_sf <- joined_sf %>%
+  mutate(old_population_num = if_else(old_population == "yes", 1, 0))
+
+# Calculate centroids of each CT
+joined_sf$centroids <- st_centroid(joined_sf)
+
+# Extract coordinates
+joined_sf <- joined_sf %>%
+  mutate(X = st_coordinates(centroids)[, 1],
+         Y = st_coordinates(centroids)[, 2])
+
+# Define spatial extent based on coordinates
+xrange <- c(min(joined_sf$X, na.rm = TRUE), max(joined_sf$X, na.rm = TRUE))
+yrange <- c(min(joined_sf$Y, na.rm = TRUE), max(joined_sf$Y, na.rm = TRUE))
+
+
+# Create ppp object for spatstat
+old_population_ppp <- ppp(joined_sf$X[joined_sf$old_population_num == 1], 
+                      joined_sf$Y[joined_sf$old_population_num == 1],
+                      window = owin(xrange, yrange))
+
+# Perform kernel density estimation (KDE) using spatstat
+old_population_density <- density(old_population_ppp, sigma = 0.02)
+
+# Convert to raster for plotting with tmap
+old_population_density_raster <- rast(as.im(old_population_density))
+
+# Assign CRS to low_income_density_raster
+crs(old_population_density_raster) <- "EPSG:4326"
+
+# Transform toronto_merged to EPSG:4326
+toronto_merged_transformed <- st_transform(toronto_merged, crs = "EPSG:4326")
+
+# Crop the raster to the bounding box of toronto_merged_transformed
+old_population_density_raster <- crop(old_population_density_raster, toronto_merged_transformed)
+
+# Mask the raster to the bounding box of toronto_merged_transformed
+old_population_density_raster <- mask(old_population_density_raster, toronto_merged_transformed)
+```
+
+
+```{r, echo=FALSE,fig.cap="Heatmap of Elder Population Density in Toronto",fig.width=5, fig.height=4}
+# Plot low income density using tmap
+tm_shape(toronto_cropped) +
+  tm_rgb() +
+  tm_shape(toronto_merged) +
+  tm_borders(col = "black") +
+  tm_shape(old_population_density_raster) +
+  tm_raster(palette = c( "yellow", "orange", "red", "darkred"),
+            alpha = 0.7,
+            labels = c("very low", "low", "medium", "high", "very high"),
+            title = "Elder Population Density") +
+  tm_shape(wards_data) +
+  tm_borders() +
+  tm_layout(title = "Elder Population Density", 
+            frame = FALSE,
+            legend.position = c("right","bottom"),
+            legend.text.size = 0.4)
+
+```
+
+#### Key Observations:
+- **High Density of Elderly Population:** The dark red areas, particularly in the central and southern parts of Toronto, indicate regions with a high concentration of elderly residents. These areas are critical for healthcare planning, as older populations generally have greater healthcare needs.
+- **Moderate to Low Density Areas:** The yellow and orange areas represent regions with fewer elderly residents. These areas are spread across the northern and eastern parts of Toronto and generally indicate a younger population, which might require different healthcare services.
+- **Spatial Disparity:** The heatmap highlights the spatial disparity in the distribution of the elderly population across Toronto. Areas with higher concentrations of elderly residents may require more healthcare services, particularly those tailored to the needs of older adults.
+
+# 5. Methodology
+The methodology for this project follows a systematic approach to identify optimal locations for new healthcare facilities in Toronto. The process involves several key steps, each designed to analyze healthcare accessibility and determine the most underserved areas in the city. Below is a detailed flowchart illustrating the methodology:
+
+```{r, echo=FALSE, out.width='80%'}
+knitr::include_graphics("method_flowchart.png")
+```
+
+The Two-Step Floating Catchment Area (2SFCA) method has been used to assess healthcare accessibility in Toronto. The 2SFCA method calculates healthcare accessibility by evaluating the healthcare facility-to-population ratio within defined catchment areas. 
+
+## 5.1. Define Catchment Area and Calculate Supply-to-Demand Ratio:
+The first step involves generating a 5-kilometer catchment area around each healthcare facility, representing the service area. The centroids of census tracts are then calculated to serve as representative points for the population within each tract. For each facility, the total population within its catchment area is summed, and the number of healthcare facilities within the same area are counted. The supply-to-demand ratio is then calculated as the ratio of the number of healthcare facilities to the population within the catchment area, In the first step, the supply-to-demand ratio \( R_j \) for each hospital is calculated using the formula:
+
+$$
+R_j = \frac{S_j}{\sum P_j}
+$$
+
+where: \( R_j \) represents the ratio for each hospital, \( S_j \) is the number of hospitals in the catchment area at location \( j \), \( \sum P_j \) is the total population of the census tracts within the catchment area.
+
+```{r, include = FALSE}
+
+##### the supply-to-demand ratios to the healthcare facilities
+
+
+# Transform the CRS of the merged Toronto data
+toronto_merged <- st_transform(toronto_merged, crs = st_crs(unique_healthcare_facilities))
+
+# Calculate 5km catchment areas around each healthcare facility
+catchment_areas <- st_buffer(unique_healthcare_facilities, dist = 5000)
+
+# Calculate the centroids of the census tracts
+toronto_centroids <- st_centroid(toronto_merged)
+
+# Function to calculate the supply-to-demand ratio
+calculate_supply_demand_ratio <- function(facility, population_data, centroids) {
+  catchment_area <- st_buffer(facility, dist = 5000)
+  centroids_within_catchment <- centroids[st_within(centroids, catchment_area, sparse = FALSE), ]
+  tracts_within_catchment <- population_data[st_within(st_centroid(population_data), catchment_area, sparse = FALSE), ]
+  
+  total_population <- sum(tracts_within_catchment$Population_2021, na.rm = TRUE)
+  
+  # Calculate the number of healthcare facilities within the catchment area
+  facilities_within_catchment <- nrow(unique_healthcare_facilities[st_within(unique_healthcare_facilities, catchment_area, sparse = FALSE), ])
+  
+  if (total_population == 0) {
+    return(NA) # Return NA if total population is zero to avoid division by zero
+  } else {
+    return(facilities_within_catchment / total_population)
+  }
+}
+
+# Initialize an empty vector to store supply-to-demand ratios
+supply_demand_ratios <- numeric(nrow(unique_healthcare_facilities))
+
+# Loop through each healthcare facility to calculate the supply-to-demand ratio
+for (i in 1:nrow(unique_healthcare_facilities)) {
+  facility <- unique_healthcare_facilities[i, ]
+  supply_demand_ratios[i] <- calculate_supply_demand_ratio(facility, toronto_merged, toronto_centroids)
+}
+
+# Assign the supply-to-demand ratios to the healthcare facilities
+unique_healthcare_facilities$ratio <- supply_demand_ratios
+
+
+```
+
+## 5.2. Calculate Accessibility Score:
+In the second step, the accessibility score \( A_j \) is calculated for each census tract by summing the supply-to-demand ratios from all relevant catchment areas. This accessibility score is expressed as: $$
+A_j = \sum R_j = \sum \frac{S_j}{\sum P_j}
+$$,  providing an overall measure of how easily the population can access healthcare facilities. This approach captures both the availability of healthcare facilities and the population they serve, thus offering a comprehensive spatial assessment of healthcare accessibility across Toronto. The calculated accessibility scores are normalized to ensure comparability across census tracts. The normalized accessibility scores are then assigned to the respective census tracts in the Toronto dataset, providing a standardized measure of healthcare accessibility across the city.
+
+```{r, include = FALSE}
+
+# Function to calculate the accessibility score for each census tract
+calculate_accessibility_score <- function(ct, facilities) {
+  # Create a buffer around the centroid of the census tract
+  centroid <- st_centroid(ct)
+  buffer_1km <- st_buffer(centroid, dist = 2000)
+  
+  # Select facilities within the census tract
+  facilities_within_ct <- facilities[st_within(facilities, ct, sparse = FALSE), ]
+  
+  # Select facilities within 3 km from the centroid of the census tract
+  facilities_within_buffer <- facilities[st_within(facilities, buffer_1km, sparse = FALSE), ]
+  
+  # Combine the two sets of facilities
+  combined_facilities <- rbind(facilities_within_ct, facilities_within_buffer)
+  combined_facilities <- combined_facilities[!duplicated(combined_facilities), ]  # Remove duplicates
+  
+  # Calculate the accessibility score
+  if (nrow(combined_facilities) == 0) {
+    return(0)
+  } else {
+    return(sum(combined_facilities$ratio, na.rm = TRUE))
+  }
+}
+
+# Initialize an empty vector to store accessibility scores
+accessibility_scores <- numeric(nrow(toronto_merged))
+
+# Loop through each census tract to calculate the accessibility score
+for (i in 1:nrow(toronto_merged)) {
+  accessibility_scores[i] <- calculate_accessibility_score(toronto_merged[i, ], unique_healthcare_facilities)
+}
+
+# Assign the accessibility scores to the census tracts dataframe
+toronto_merged$accessibility_score <- accessibility_scores
+
+# Normalize the accessibility scores
+max_score <- max(toronto_merged$accessibility_score, na.rm = TRUE)
+toronto_merged$normalized_scores <- toronto_merged$accessibility_score / max_score
+
+# Assign the normalized scores to the accessibility_score column if desired
+toronto_merged$accessibility_score <- toronto_merged$normalized_scores
+
+```
+
+```{r, echo = FALSE, fig.cap="Healthcare Accessibility in Toronto",  fig.width=5, fig.height=4}
+
+breaks <- c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf)
+labels <- c("Very Low", "Low", "Medium", "High", "Very High")
+
+# Create a new column with the accessibility categories
+toronto_merged$accessibility_category <- cut(toronto_merged$accessibility_score,
+                                              breaks = breaks,
+                                              labels = labels,
+                                              right = FALSE)
+
+tm_shape(toronto_merged) +
+  tm_polygons("accessibility_category",
+              palette = c("Blues"),
+              title = "Accessibility Category",
+              style = "fixed")  +
+  tm_shape(unique_healthcare_facilities) +
+  tm_dots(size = 0.01, col = "red", title = "Healthcare Facilities") +
+  tm_layout(title = "Healthcare Accessibility", legend.outside = FALSE,
+            frame= FALSE,
+            legend.text.size = 0.4)+
+  tm_add_legend(type = "symbol", col = c("red"), labels = c("Hospitals"))
+
+```
+
+Figure 6 shows, the level of healthcare accessibility across Toronto's neighborhoods. The shades of blue represent different levels of access, from "Very Low" to "Very High." Lighter blue areas have poor access to healthcare services, while darker blue areas have better access. The red dots indicate existing healthcare facilities. The map highlights that central and northern regions of Toronto have lower healthcare accessibility, suggesting a need for more healthcare facilities in those areas. In contrast, downtown areas have higher accessibility due to a higher concentration of healthcare services.
+
+## 5.3. Identify Underserved Areas:
+Underserved areas  are identified in Toronto by filtering regions with accessibility scores below a threshold of 0.2, classifying these as "Underserved". Then, potential new hospital locations is generated by calculating the centroids of underserved census tracts. A minimum separation of 2000 meters between potential locations is maintained to reduce overlap in service areas, resulting in more efficient spatial planning.
+
+```{r, include =FALSE, echo = FALSE}
+# Identify underserved areas
+threshold <- 0.2  # Define a threshold for low accessibility score
+underserved_areas <- toronto_merged %>% filter(accessibility_score <= threshold)
+
+toronto_merged <- toronto_merged %>%
+  mutate(underserved = ifelse(accessibility_score <= threshold, "Underserved", "Not Underserved"))
+```
+
+```{r, echo=FALSE, fig.cap= "Identification of Underserved Areas for Healthcare Accessibility", fig.width=5, fig.height=4}
+#tmap_mode("plot")
+tm_shape(toronto_merged) +
+  tm_polygons("underserved", 
+              palette = c("lightgreen", "red"), 
+              title = "Underserved Areas",
+              labels = c("Not Underserved", "Underserved")) +
+  tm_layout(title = "Identify Underserved Areas",
+            legend.outside = FALSE,
+            frame= FALSE,
+            legend.text.size = 0.6)
+
+```
+
+```{r, include =FALSE}
+# Generate potential new hospital locations (centroids of underserved tracts)
+potential_locations <- st_centroid(underserved_areas)
+
+# Get the bounding box of the Toronto boundary as a polygon
+toronto_bbox <- st_as_sfc(st_bbox(toronto_merged))
+
+# Convert the bounding box polygon to a line
+toronto_bbox_line <- st_cast(toronto_bbox, "LINESTRING")
+
+# Calculate the distance from each centroid to the nearest edge of the bounding box line
+dist_to_bbox <- st_distance(potential_locations, toronto_bbox_line)
+
+# Set the threshold distance
+threshold_distance <- 2500  # in meters
+
+# Filter out locations that are within the threshold distance from the bounding box line
+potential_locations <- potential_locations[as.numeric(dist_to_bbox) > threshold_distance, ]
+
+# Function to filter centroids based on their distance from the boundary
+filter_centroids_on_border <- function(centroids, areas, buffer_distance) {
+  # Ensure areas and centroids are in the same CRS
+  areas <- st_transform(areas, crs = st_crs(centroids))
+  
+  # Initialize a logical vector to keep track of centroids to keep
+  keep <- rep(TRUE, nrow(centroids))
+  
+  for (i in 1:nrow(centroids)) {
+    current_centroid <- centroids[i, ]
+    # Get the area containing the current centroid
+    containing_area <- areas[st_within(current_centroid, areas, sparse = FALSE), ]
+    
+    if (nrow(containing_area) == 0) next
+    
+    # Calculate the distance from the centroid to the boundary of the containing area
+    area_boundary <- st_boundary(containing_area)
+    distance_to_boundary <- st_distance(current_centroid, area_boundary)
+    
+    # Ensure the distance is a numeric value
+    distance_to_boundary <- as.numeric(distance_to_boundary)
+    
+    # Check if the centroid is too close to the boundary
+    if (distance_to_boundary <= buffer_distance) {
+      keep[i] <- FALSE
+    }
+  }
+  
+  return(centroids[keep, ])
+}
+
+# Define buffer distance for being too close to the boundary
+buffer_distance <- 350
+
+# Filter centroids that are not too close to the boundary
+filtered_centroids <- filter_centroids_on_border(potential_locations, underserved_areas, buffer_distance)
+```
+
+
+```{r, include =FALSE, echo = FALSE}
+# Function to filter potential locations based on minimum distance
+filter_potential_locations <- function(locations, min_distance) {
+  keep <- rep(TRUE, nrow(locations))  # Initialize a logical vector to keep track of locations to keep
+  
+  for (i in 1:nrow(locations)) {
+    if (keep[i]) {
+      # Find all locations within min_distance from the current location
+      close_locations <- st_is_within_distance(locations[i, ], locations, dist = min_distance)
+      
+      # Update the keep vector: set FALSE for all locations within min_distance
+      keep[close_locations[[1]]] <- FALSE
+      keep[i] <- TRUE  # Ensure the current location is kept
+    }
+  }
+  
+  return(locations[keep, ])
+}
+
+# Apply the function to filter locations with at least 1500 meters apart
+filtered_locations <- filter_potential_locations(filtered_centroids, min_distance = 1500)
+```
+
+The Figure 7 identifies the underserved areas for healthcare accessibility in Toronto. The red regions highlight areas where healthcare access is significantly lacking, meaning residents in these areas have limited or difficult access to healthcare services. The green areas, on the other hand, represent regions that are not underserved, indicating better access to healthcare. The map shows that the underserved areas are spread across various parts of Toronto, with a significant concentration in the northern and western parts of the city. This suggests a need for targeted healthcare infrastructure development in these red-marked areas. 
+
+## 5.4. Centroid as Potential Locations in each Census Tract:
+The centroids of the of each census tract that is within 5km range of Toronto border were considered as potential locations for new healthcare facilities. By focusing on these central points, the aim was to optimize the placement of new facilities to maximize coverage within underserved regions.
+
+```{r, echo = FALSE, fig.cap="Centroid as Potential Locations for each CT in Toronto",  fig.width=5, fig.height=4}
+tm_shape(toronto_merged) +
+  tm_polygons("accessibility_category",
+              palette = c("Blues"),
+              title = "Accessibility",
+              style = "fixed")  +
+  tm_shape(filtered_locations) +
+  tm_dots(size = 0.1, col = "brown", title = "Filtered Potential Locations") +
+  tm_layout(title = "Centroid as Potential Locations",
+            legend.outside = FALSE,
+            frame = FALSE,
+            legend.title.size = 1.2,
+            legend.text.size = 0.5)+
+  tm_add_legend(type = "symbol", col = c("brown"), labels = c("CT Centroids"))
+```
+
+This Figure 8, titled **Centroid as Potential Locations** shows the filtered potential locations for new healthcare facilities in Toronto, overlaid on a map that categorizes areas based on their current healthcare accessibility. The accessibility categories range from "Very Low" to "Very High," with darker shades indicating areas with better access to healthcare services. The red dots represent the filtered potential locations identified through the analysis. These locations are primarily situated in areas with lower accessibility, highlighting regions where new healthcare facilities could significantly improve access for residents.
+
+## 5.5. Calculate Distance to Nearest Existing Hospital:
+To calculate the distance from a potential location to the nearest existing hospital using the Ontario road networks data, the process involves several steps. First, the nearest nodes in the road network are identified for both the potential location and the existing hospitals. Dijkstra’s Algorithm is then applied to determine the shortest path between these nearest nodes. Dijkstra’s Algorithm calculates the shortest path between nodes in a graph using the following formula:
+
+\[
+d(v) = \min \left( d(u) + w(u, v) \right)
+\]
+
+where: \(d(v)\) is the shortest known distance from the source node to node \(v\), \(d(u)\) is the shortest known distance from the source node to node \(u\), \(w(u, v)\) is the weight (or distance) of the edge connecting nodes \(u\) and \(v\). The algorithm iteratively updates the shortest path estimates for all nodes until the shortest path to each node is found. Following the identification of the shortest path, the edges that comprise this route are extracted. The total distance is calculated by summing the lengths of these edges. This computed distance represents the travel distance from the potential location to the nearest hospital.
+
+
+```{r, include = FALSE}
+
+### Road Network
+
+# Define the path to the shapefile
+shapefile_path <- "Ontario_Road_Network_(ORN)_Segment_With_Address/Ontario_Road_Network_(ORN)_Segment_With_Address.shp"
+
+# Read the shapefile
+ontario_roads <- st_read(shapefile_path)
+# Transform the Ontario roads data to the CRS of the Toronto border and basemap
+ontario_roads <- st_transform(ontario_roads, crs = st_crs(toronto_border))
+
+# Crop the Ontario roads data to the Toronto boundary
+ontario_roads_cropped <- st_crop(ontario_roads, toronto_border)
+ontario_roads_cropped <- st_transform(ontario_roads_cropped, crs = 4326)
+
+
+```
+
+```{r, include = FALSE}
+
+# Function to convert MULTILINESTRING to multiple LINESTRING features
+convert_multilinestrings_to_linestrings <- function(multilinestring_sf) {
+  # Apply st_cast to each MULTILINESTRING feature
+  linestrings_list <- st_cast(multilinestring_sf, "LINESTRING")
+  return(linestrings_list)
+}
+
+
+
+# Identify MULTILINESTRING geometries
+geom_types <- st_geometry_type(ontario_roads_cropped)
+multilinestring_rows <- ontario_roads_cropped[geom_types == "MULTILINESTRING", ]
+
+# Convert MULTILINESTRING features to LINESTRING features
+linestrings_sf <- convert_multilinestrings_to_linestrings(multilinestring_rows)
+
+# Filter out LINESTRING geometries from the original dataset
+existing_linestrings <- ontario_roads_cropped[geom_types == "LINESTRING", ]
+
+# Ensure columns match
+# Get column names of both
+existing_cols <- names(existing_linestrings)
+linestrings_cols <- names(linestrings_sf)
+
+# Add missing columns with NA values to align columns
+missing_in_existing <- setdiff(linestrings_cols, existing_cols)
+missing_in_linestrings <- setdiff(existing_cols, linestrings_cols)
+
+if (length(missing_in_existing) > 0) {
+  existing_linestrings[missing_in_existing] <- NA
+}
+
+if (length(missing_in_linestrings) > 0) {
+  linestrings_sf[missing_in_linestrings] <- NA
+}
+
+# Ensure column order is the same
+existing_linestrings <- existing_linestrings[order(names(existing_linestrings))]
+linestrings_sf <- linestrings_sf[order(names(linestrings_sf))]
+
+# Combine the data frames
+ontario_roads_linestring <- rbind(existing_linestrings, linestrings_sf)
+```
+
+
+
+
+```{r, include=FALSE}
+
+# Define the function to calculate the distance to the nearest hospital
+calculate_distance_to_nearest_hospital <- function(start_point_coords, healthcare_facilities) {
+  
+  # Convert the road network to a sfnetwork object
+  network <- as_sfnetwork(ontario_roads_linestring, directed = FALSE)
+  
+  # Add edge weights based on the length of the road segments
+  network <- network %>%
+    activate(edges) %>%
+    mutate(weight = st_length(geometry))
+  
+  # Extract nodes from the network
+  nodes <- st_as_sf(network, "nodes")
+  
+  # Create a starting point from given coordinates
+  start_point <- st_sfc(st_point(start_point_coords), crs = 4326)
+  start_point_sf <- st_as_sf(start_point)
+  
+  # Find the nearest node to the starting point
+  start_node <- st_nearest_feature(start_point_sf, nodes)
+  
+  # Transform healthcare facilities to the same CRS as the network
+  healthcare_facilities <- st_transform(healthcare_facilities, crs = 4326)
+  
+  # Calculate distances from the starting point to each healthcare facility
+  healthcare_facilities$distance <- st_distance(start_point_sf, healthcare_facilities) %>%
+    units::set_units("meters") %>%
+    as.numeric()
+  
+  # Find the nearest hospital (minimum distance)
+  nearest_hospital <- healthcare_facilities %>%
+    arrange(distance) %>%
+    slice(1)
+  
+  # Find the nearest node to the nearest hospital
+  nearest_hospital_node <- st_nearest_feature(nearest_hospital, nodes)
+  
+  # Convert the network to a tbl_graph for igraph processing
+  network_tg <- as_tbl_graph(network)
+  
+  # Find the shortest path using igraph
+  shortest_path_igraph <- shortest_paths(network_tg, from = start_node, to = nearest_hospital_node, weights = E(network_tg)$weight, output = "both")
+  
+  # Extract the shortest path vertices
+  path_vertices <- shortest_path_igraph$vpath[[1]]
+  
+  # Convert path vertices to edge IDs
+  path_edges <- as.data.frame(igraph::as_edgelist(network_tg))
+  colnames(path_edges) <- c("from", "to")
+  path_edges <- path_edges %>%
+    filter((from %in% path_vertices) & (to %in% path_vertices))
+  
+  # Ensure the edges are in the correct order
+  path_edges <- path_edges %>%
+    rowwise() %>%
+    mutate(edge_id = igraph::get.edge.ids(network_tg, c(from, to))) %>%
+    pull(edge_id)
+  
+  # Convert network to sf and assign edge IDs
+  network_sf <- network %>%
+    activate(edges) %>%
+    mutate(edge_id = row_number()) %>%
+    st_as_sf()
+  
+  # Extract path edges as sf
+  path_edges_sf <- network_sf %>%
+    filter(edge_id %in% path_edges)
+  
+  # Calculate the total travel distance
+  total_distance <- sum(st_length(path_edges_sf$geometry))
+  
+  # Return the total distance
+  return(total_distance)
+}
+
+```
+
+
+```{r, include= FALSE}
+
+# Calculate travel distances from these potential locations to existing hospitals
+filtered_locations$distance_to_nearest_hospital <- apply(st_coordinates(filtered_locations), 1, function(coords) {
+  calculate_distance_to_nearest_hospital(coords, unique_healthcare_facilities)
+})
+
+# Evaluate potential locations based on accessibility scores and travel distances
+filtered_locations <- filtered_locations %>%
+  mutate(evaluation_score =  distance_to_nearest_hospital)
+
+
+```
+
+## 5.6. Calculate Necessity Score using MCDA:
+Then, Multi-Criteria Decision Analysis (MCDA) is applied to evaluate and rank potential locations for a new facility by integrating multiple criteria into a unified framework. MCDA is well-suited for complex decision problems that involve multiple factors and provides a structured methodology to weigh and aggregate these factors. The criteria include distance to the nearest hospital, proportion of elderly population, income level, accessibility score, and overall population. Normalization of each criterion to a standardized scale from 0 to 1 is performed to ensure comparability across different units and magnitudes.  The weights assigned to each criterion in the Multi-Criteria Decision Analysis (MCDA) reflect their relative importance in determining the necessity for a new hospital. The weight for distance to the nearest hospital is set at 0.35, emphasizing its critical role in assessing access to existing healthcare facilities. Moreover, the weight for accessibility is also 0.35, highlighting the importance of ensuring that the new hospital is easily reachable for the community. The weights for the proportion of the elderly population, income level, and overall population size are set at 0.1 each. This distribution acknowledges that while these factors are relevant, they are considered less critical compared to distance and accessibility.  The normalized values are multiplied by their respective weights and summed to compute an total necessity score for each location.
+
+The MCDA score is calculated using the following formula:
+
+\[
+\text{MCDA Score} = (w_d \cdot \text{norm}_d) + (w_e \cdot \text{norm}_e) + (w_i \cdot (1 - \text{norm}_i)) + (w_a \cdot (1 - \text{norm}_a)) + (w_p \cdot \text{norm}_p)
+\]
+
+where: \(\text{norm}_d\) is the normalized score for distance to the nearest hospital, \(\text{norm}_e\) is the normalized proportion of the elderly population, \((1 - \text{norm}_i)\) is the inverted normalized income level (since lower income levels increase necessity), \((1 - \text{norm}_a)\) is the inverted normalized accessibility score (since lower accessibility increases necessity), \(\text{norm}_p\) is the normalized population size, \(w_d\), \(w_e\), \(w_i\), \(w_a\), and \(w_p\) are the weights assigned to each criterion. Income and accessibility scores are inverted to reflect that lower values of these criteria are associated with higher necessity. The criteria are normalized to a common scale to ensure comparability, and the weights reflect their relative importance in the decision-making process. This approach provides a composite score for each location, which is used to rank and identify the most suitable sites for new healthcare facilities. Locations with higher necessity scores highlight where the new hospital is most needed and will have the greatest positive impact.
+
+```{r, include = FALSE}
+##MCDA
+# Define the weights for the criteria
+weight_distance <- 0.35  # Weight for distance to nearest hospital
+weight_elderly <- 0.1    # Weight for proportion of elderly population
+weight_income <- 0.1    # Weight for income level
+weight_accessibility <- 0.35  # Weight for accessibility score
+weight_population <-0.1
+
+
+max_pop <- max(filtered_locations$Population_2021, na.rm = TRUE)
+min_pop <- min(filtered_locations$Population_2021, na.rm = TRUE)
+filtered_locations <- filtered_locations %>%
+  mutate(norm_pop = (Population_2021 - min_pop) / (max_pop - min_pop))
+
+
+# Normalize the evaluation_score (distance)
+max_distance <- max(filtered_locations$evaluation_score, na.rm = TRUE)
+min_distance <- min(filtered_locations$evaluation_score, na.rm = TRUE)
+filtered_locations <- filtered_locations %>%
+  mutate(norm_distance = (evaluation_score - min_distance) / (max_distance - min_distance))
+
+# Normalize the elderly_population
+max_elderly <- max(filtered_locations$Old_Population_2021, na.rm = TRUE)
+min_elderly <- min(filtered_locations$Old_Population_2021, na.rm = TRUE)
+filtered_locations <- filtered_locations %>%
+  mutate(norm_elderly = (Old_Population_2021 - min_elderly) / (max_elderly - min_elderly))
+
+# Normalize the income 
+max_income <- max(filtered_locations$Income_2021, na.rm = TRUE)
+min_income <- min(filtered_locations$Income_2021, na.rm = TRUE)
+filtered_locations <- filtered_locations %>%
+  mutate(norm_income = (Income_2021 - min_income) / (max_income - min_income))
+
+# Normalize the accessibility score 
+max_accessibility <- max(filtered_locations$accessibility_score, na.rm = TRUE)
+min_accessibility <- min(filtered_locations$accessibility_score, na.rm = TRUE)
+filtered_locations <- filtered_locations %>%
+  mutate(norm_accessibility = (accessibility_score - min_accessibility) / (max_accessibility - min_accessibility))
+
+
+filtered_locations <- filtered_locations %>%
+  mutate(norm_income = 1 - norm_income,
+         norm_accessibility = 1 - norm_accessibility)
+
+# Calculate the MCDA score
+filtered_locations <- filtered_locations %>%
+  mutate(mcda_score = (norm_distance * weight_distance) +
+                        (norm_elderly * weight_elderly) +
+                        (norm_income * weight_income) +
+                        (norm_accessibility * weight_accessibility)+
+                         (norm_pop * weight_population) )
+  
+
+# Find the top 10 locations based on MCDA score
+top_5_locations_mcda <- filtered_locations %>%
+  arrange(desc(mcda_score)) %>%
+  slice(1:10)
+```
+
+```{r, echo=FALSE, fig.cap="Optimal Locations for New Healthcare Facility", fig.width=5, fig.height=4}
+# Visualize the results using tmap
+tm_shape(toronto_merged) +
+  tm_polygons("accessibility_category",
+              palette = c("Blues"),
+              title = "Accessibility Category",
+              style = "fixed") +
+  tm_shape(top_5_locations_mcda) +
+  tm_dots(size = 0.1, col = "purple", title = "Optimal Locations") +
+  tm_layout(title = "Optimal Locations for Hospitals", 
+            legend.position = c("right", "bottom"),  # Ensure legend is in a visible position
+            legend.outside = FALSE,
+            frame = FALSE,
+            legend.text.size = 0.42)+
+  tm_add_legend(type = "symbol", col = c("purple"), labels = c("Potential Location"))
+```
+
+The Figure 9, titled **Top 10 Optimal Locations for New Healthcare Facility** shows the potential locations in the underserved areas where new healthcare facilities can be build highlighted as purple points
+
+## 5.7. Apply Universal Kriging:
+In this analysis, Universal Kriging was employed to predict accessibility scores for randomly generated points within identified underserved areas. Kriging is a geostatistical interpolation technique that estimates values at unobserved locations by analyzing the spatial correlation between known data points. Firstly, random points are generated within the targeted areas of low accessibility. Based on the known necessity scores for the centroids of the census tracts in toronto underserved regions, kriging is used to estimate scores for random points within underserved areas. 
+
+
+For Universal Kriging with a trend model, the prediction formula is:
+
+\[
+\hat{Z}(s_0) = \mathbf{X}(s_0)^T \boldsymbol{\beta} + \sum_{i=1}^{n} \lambda_i \cdot Z(s_i)
+\]
+
+where: \(\hat{Z}(s_0)\) is the predicted necessity score at location \(s_0\), \(\mathbf{X}(s_0)^T \boldsymbol{\beta}\) is the trend component, accounting for spatial coordinates (i.e., \(\text{coord}_x\) and \(\text{coord}_y\)), \(\lambda_i\) are the Kriging weights determined from the variogram model, \(Z(s_i)\) are the known necessity scores at the sampled locations \(s_i\).
+
+
+The trend formula is used to capture the spatial trend based on coordinates. A variogram model is created to describe the spatial correlation of the residuals after accounting for this trend. So, universal kriging is employed to estimate necessity score at new random points, identifying areas with higher demand for new hospital construction.
+
+
+```{r, include=FALSE}
+# Function to generate random points within the underserved areas
+generate_random_points <- function(areas, num_points) {
+  random_points_list <- st_sample(areas, size = num_points, type = "random")
+  random_points_sf <- st_as_sf(random_points_list)
+  return(random_points_sf)
+}
+
+threshold <- 0.2  # Define a threshold for low accessibility score
+considered_areas <- toronto_merged %>% filter(accessibility_score <= threshold)
+
+# Generate random points within the considered_areas 
+random_points <- generate_random_points(considered_areas, num_points = 200)
+
+
+# Calculate the distance from each random point to the nearest edge of the bounding box line
+dist_to_bbox <- st_distance(random_points, toronto_bbox_line)
+
+# Filter out random points that are within the threshold distance from the bounding box line
+random_points <- random_points[as.numeric(dist_to_bbox) > 3500, ]
+
+# Ensure no NA values are present
+random_points <- na.omit(random_points)
+
+# Apply the function to filter locations with at least 2000 meters apart
+random_points <- filter_potential_locations(random_points, min_distance = 2000)
+
+```
+
+```{r, include=FALSE}
+
+
+# Extract coordinates from sf objects
+filtered_locations_coords <- st_coordinates(filtered_locations)
+random_points_coords <- st_coordinates(random_points)
+
+# Add coordinates to the data frames
+filtered_locations$coord_x <- filtered_locations_coords[, 1]
+filtered_locations$coord_y <- filtered_locations_coords[, 2]
+random_points$coord_x <- random_points_coords[, 1]
+random_points$coord_y <- random_points_coords[, 2]
+
+# Define the trend formula including the extracted coordinates
+trend_formula <- mcda_score ~ coord_x + coord_y  # Use coordinates as trend variables
+
+# Create a variogram model based on residuals after accounting for the trend
+variogram_model <- variogram(trend_formula, data = filtered_locations)
+fitted_model <- fit.variogram(variogram_model, model = vgm("Sph"))
+
+# Perform Universal Kriging interpolation
+kriging_result <- krige(trend_formula, locations = filtered_locations, newdata = random_points, model = fitted_model)
+
+# Add predicted necessity scores to random points
+random_points$kriging_necessity <- kriging_result$var1.pred
+```
+
+## 5.8. Apply IDW:
+To explore alternative methods, Inverse Distance Weighting (IDW) is also applied. Unlike Kriging, IDW is a simpler technique that estimates necessity scores based purely on proximity, giving more weight to closer points. This approach offers a straightforward alternative, focusing on spatial proximity without the need for trend or variogram modeling. By adjusting the power parameter, IDW controls how quickly the influence of known points diminishes with distance. A power value of 2 is chosen to ensure that nearby points have a significantly stronger influence on the predicted necessity scores than distant ones.  This experimentation with IDW offers a more straightforward approac, providing a complementary method to Kriging for identifying areas of higher necessity for new hospital sites.
+
+The IDW function uses the following formula:
+
+\[
+\hat{A}(s_0) = \frac{\sum_{i=1}^{n} A(s_i) \cdot \frac{1}{d(s_0, s_i)^p}}{\sum_{i=1}^{n} \frac{1}{d(s_0, s_i)^p}}
+\]
+
+where \(\hat{A}(s_0)\) represents the predicted accessibility score at a new location \(s_0\), \(A(s_i)\) is the known accessibility score at location \(s_i\), \(d(s_0, s_i)\) is the distance between \(s_0\) and \(s_i\), and \(p\) is the power parameter. This formula calculates a weighted average of known accessibility scores, with closer locations having more influence, based on the distance raised to the power \(p\). This approach helps in estimating accessibility scores for new locations based on proximity to existing data points.
+
+By adjusting the power parameter, IDW controls how quickly the influence of known points diminishes with distance. A power value of 3 is chosen to ensure that nearby points have a significantly stronger influence on the predicted necessity scores than distant ones.  This experimentation with IDW offers a more straightforward approach, providing a complementary method to Kriging for identifying areas of higher necessity for new hospital sites.
+
+```{r, include=FALSE}
+# Define the IDW interpolation formula
+idw_formula <- mcda_score ~ 1  # IDW does not require a trend model
+
+# Perform IDW interpolation
+idw_result <- idw(idw_formula, locations = filtered_locations, newdata = random_points, idp = 3)  # idp = power parameter, 
+
+# Add predicted necessity scores to random points
+random_points$idw_necessity <- idw_result$var1.pred
+```
+
+# 6. Key Findings
+In this analysis, new potential locations for healthcare facilities in Toronto were identified by focusing on areas with a high concentration of vulnerable populations, particularly the elderly and low-income residents. To achieve this, two advanced spatial interpolation methods—Kriging and Inverse Distance Weighting (IDW)—were employed to estimate the spatial distribution of healthcare accessibility across the city and to pinpoint the most underserved areas.
+
+## 6.1. Kriging Analysis
+Kriging, a geostatistical method, was employed to incorporate spatial correlations and trends using a variogram, providing a smooth, continuous surface that predicts healthcare accessibility across Toronto. This method not only generated more accurate predictions but also offered uncertainty estimates, making it particularly valuable in identifying key areas with significant gaps in healthcare access. The Kriging analysis highlighted several critical regions, particularly in the northern and eastern parts of the city, where accessibility is currently inadequate. By pinpointing these areas, the analysis suggested new locations where healthcare facilities could be strategically placed to improve accessibility. These proposed locations were predominantly in neighborhoods with a high density of elderly and low-income populations, ensuring that the new facilities would directly benefit those most in need.
+
+```{r, echo=FALSE, fig.cap="Necessity scores predictions at random points applying Kriging",fig.width=5, fig.height=4}
+
+# Define breaks and corresponding labels
+breaks <- c(-Inf, 0.2, 0.4, 0.6, Inf)  # Adjust breaks based on your data range
+labels <- c("Low", "Medium", "High", "Very High")
+
+# Create the base map with Toronto tracts and their accessibility scores
+# Define a custom color palette with the same length as the number of breaks minus one
+custom_palette <- c("green", "orange", "brown", "red")  # Ensure these are valid colors
+
+# Create the base map with Toronto tracts and their accessibility scores
+tm_shape(toronto_merged) +
+  tm_polygons("accessibility_category",
+              palette = c("Blues"),
+              title = "Accessibility",
+              style = "fixed") +
+  tm_shape(random_points) +
+  tm_dots(col = "kriging_necessity", 
+          size = 0.1, 
+          palette = custom_palette,  # Use custom_palette here
+          style = "fixed",  # Handle discrete color scale
+          breaks = breaks, 
+          labels = labels,
+          title = "Necessity Score") +  # Add title for the color legend
+  tm_layout(title = "Necessity score using Kriging",
+            legend.position = c("right", "bottom"), legend.outside = FALSE, frame = FALSE,
+            legend.text.size = 0.4)
+```
+
+This Figure 10, shows the predicted necessity scores at random points across Toronto using Kriging, a spatial analysis method. The map categorizes areas based on their healthcare accessibility (ranging from "Very Low" to "Very High") and highlights random points with colored dots representing their necessity scores. The green dots indicate low necessity, while yellow, orange, and red dots show medium, high, and very high necessity scores, respectively. The map helps identify areas where new healthcare facilities are most needed, especially in regions with high or very high necessity scores. These areas generally align with places that already have low accessibility, suggesting they should be prioritized for new healthcare infrastructure.
+
+## 6.2. Inverse Distance Weighting (IDW) Analysis
+IDW was applied to estimate healthcare accessibility by assigning more weight to closer healthcare facilities, decreasing the influence of those farther away. Unlike Kriging, IDW relies purely on distance from known points to estimate values, without incorporating spatial correlations. The results of the IDW analysis similarly identified underserved areas but placed slightly more emphasis on regions closer to existing facilities due to the nature of the distance-based weighting. While the IDW approach effectively highlighted areas that could benefit from additional healthcare infrastructure, it was observed that the proposed locations were generally closer to existing facilities compared to those identified by Kriging. This proximity-based focus, while beneficial in optimizing resource allocation, was less effective in reaching the most isolated and underserved populations.
+
+```{r, echo=FALSE, fig.cap="Necessity scores predictions at random points applying IDW",fig.width=5, fig.height=4}
+# Define breaks and corresponding labels
+breaks <- c(-Inf, 0.2, 0.4, 0.6, Inf)  # Adjust breaks based on your data range
+labels <- c("Low", "Medium", "High", "Very High")
+
+# Create the base map with Toronto tracts and their accessibility scores
+# Define a custom color palette with the same length as the number of breaks minus one
+custom_palette <- c("green", "orange", "brown", "red")
+
+# Create the base map with Toronto tracts and their accessibility scores
+tm_shape(toronto_merged) +
+  tm_polygons("accessibility_category",
+              palette = c("Blues"),
+              title = "Accessibility",
+              style = "fixed") +
+  tm_shape(random_points) +
+  tm_dots(col = "idw_necessity", 
+          size = 0.1, 
+          palette = custom_palette,  # Use custom_palette here
+          style = "fixed",  # Handle discrete color scale
+          breaks = breaks, 
+          labels = labels,
+          title = "Necessity Score") +  
+  tm_layout(title = "Necessity Score using IDW", legend.position = c("right", "bottom"), legend.outside = FALSE, frame = FALSE,
+            legend.text.size = 0.4)
+```
+
+This Figure 11, shows the predicted necessity scores at random points across Toronto using the Inverse Distance Weighting (IDW) method. Like the previous map with Kriging, this one also categorizes areas based on healthcare accessibility, ranging from "Very Low" to "Very High." The colored dots on the map represent the necessity scores at different points, with green indicating low necessity and red indicating very high necessity. The map helps identify areas where new healthcare facilities are needed, particularly in places with high necessity scores, which generally correspond to regions with lower accessibility. The IDW method focuses more on the proximity of existing facilities, which might result in different priority areas compared to the Kriging method.
+
+## 6.3. Comparison and Difference Analysis
+The comparison of necessity scores between Kriging and IDW revealed differences in the predicted optimal locations for new healthcare facilities. As shown in the accompanying plot Figure 12, areas with a higher necessity score difference (indicated in green) signify regions where Kriging identified a greater need for healthcare services compared to IDW. These areas are generally more isolated and farther from existing facilities, underscoring the importance of incorporating spatial correlations in the analysis to better address healthcare accessibility gaps. Conversely, areas marked in red indicate regions where IDW suggested a greater necessity, typically closer to existing infrastructure, highlighting the method’s emphasis on proximity. This comparison underscores the need for a balanced approach that considers both distance and spatial correlations to ensure that new healthcare facilities are optimally placed to serve the most vulnerable populations effectively.
+
+```{r, include = FALSE}
+# Create a comparison dataframe
+random_points <- random_points %>%
+  mutate(difference = kriging_necessity - idw_necessity)
+```
+
+```{r, echo =FALSE, fig.cap= "Difference in predicted necessity scores (Kriging - IDW)", fig.width=5, fig.height=4}
+tm_shape(toronto_merged) +
+  tm_polygons("accessibility_category",
+              palette = c("Blues"),
+              title = "Accessibility",
+              style = "fixed") +
+  tm_shape(random_points) +
+  tm_dots(col = "difference",
+          size = 0.1,
+          palette = custom_palette, 
+          title = "Difference") +
+  tm_layout(title = "Difference score (kringing - IDW)",
+            legend.position = c("right", "bottom"), legend.outside = FALSE, frame = FALSE,
+            legend.text.size = 0.35)
+```
+
+## 6.4. Shortest Route Point Analysis
+To further refine the proposed new healthcare facility locations, a shortest route analysis was conducted. This analysis calculated the shortest travel distance from potential new facility locations to the nearest existing healthcare facility. The goal of this step was to ensure that the new locations would not only serve underserved areas but also be accessible in emergency situations where quick travel times are crucial. The analysis confirmed that the locations identified through Kriging, in particular, were optimally placed both in terms of serving vulnerable populations and minimizing travel distances to existing facilities. This dual focus on underserved areas and proximity to current healthcare infrastructure ensures that the new facilities will be both effective and strategically placed.
+
+
+
+```{r, include= FALSE}
+# Step 1: Select the Top Optimal Location
+top_location <- top_5_locations_mcda %>% slice(1)
+top_location_sf <-st_as_sf(top_location)
+top_location_coords <- st_coordinates(top_location)
+
+# Step 2: Find the Tract Containing the Top Location
+tract_containing_top_location <- st_intersection(toronto_merged, top_location)
+
+# Step 3: Generate a Random Point within the Same Tract
+buffer_distance <- 3000  # Define a buffer distance to ensure coverage
+tract_buffer <- st_buffer(tract_containing_top_location, dist = buffer_distance)
+#random_point <- st_sample(tract_buffer, size = 1, type = "random")
+longitude <- -79.50205
+latitude <- 43.72584
+
+# Create a simple feature (sf) object for the point
+random_point <- st_sfc(st_point(c(longitude, latitude)), crs = 4326)
+# Convert the random point to an sf object
+random_point_sf <- st_as_sf(st_sfc(random_point, crs = st_crs(tract_buffer)))
+random_point_coords <- st_coordinates(random_point_sf)
+```
+
+```{r, include=FALSE}
+# Define the function to calculate the shortest path between two points
+calculate_shortest_path <- function(point1_coords, point2_coords, network_data) {
+  
+  # Convert the road network to a sfnetwork object
+  network <- as_sfnetwork(network_data, directed = FALSE)
+  
+  # Add edge weights based on the length of the road segments
+  network <- network %>%
+    activate(edges) %>%
+    mutate(weight = st_length(geometry))
+  
+  # Extract nodes from the network
+  nodes <- st_as_sf(network, "nodes")
+  
+  # Create starting points from given coordinates
+  point1 <- st_sfc(st_point(point1_coords), crs = st_crs(network))
+  point2 <- st_sfc(st_point(point2_coords), crs = st_crs(network))
+  point1_sf <- st_as_sf(point1)
+  point2_sf <- st_as_sf(point2)
+  
+  # Find the nearest nodes to the points
+  node1 <- st_nearest_feature(point1_sf, nodes)
+  node2 <- st_nearest_feature(point2_sf, nodes)
+  
+  # Convert the network to a tbl_graph for igraph processing
+  network_tg <- as_tbl_graph(network)
+  
+  # Find the shortest path using igraph
+  shortest_path_igraph <- shortest_paths(network_tg, from = node1, to = node2, weights = E(network_tg)$weight, output = "both")
+  
+  # Extract the shortest path vertices
+  path_vertices <- shortest_path_igraph$vpath[[1]]
+  
+  # Convert path vertices to edge IDs
+  path_edges <- as.data.frame(igraph::as_edgelist(network_tg))
+  colnames(path_edges) <- c("from", "to")
+  path_edges <- path_edges %>%
+    filter((from %in% path_vertices) & (to %in% path_vertices))
+  
+  # Ensure the edges are in the correct order
+  path_edges <- path_edges %>%
+    rowwise() %>%
+    mutate(edge_id = igraph::get.edge.ids(network_tg, c(from, to))) %>%
+    pull(edge_id)
+  
+  # Convert network to sf and assign edge IDs
+  network_sf <- network %>%
+    activate(edges) %>%
+    mutate(edge_id = row_number()) %>%
+    st_as_sf()
+  
+  # Extract path edges as sf
+  path_edges_sf <- network_sf %>%
+    filter(edge_id %in% path_edges)
+  
+  # Return the path edges as sf and the total distance
+  return(list(path_edges_sf = path_edges_sf, total_distance = sum(st_length(path_edges_sf$geometry))))
+}
+
+# Define the function to calculate the path to the nearest hospital
+calculate_paths_to_nearest_hospital <- function(start_point_coords, healthcare_facilities, network_data) {
+  
+  # Convert the road network to a sfnetwork object
+  network <- as_sfnetwork(network_data, directed = FALSE)
+  
+  # Add edge weights based on the length of the road segments
+  network <- network %>%
+    activate(edges) %>%
+    mutate(weight = st_length(geometry))
+  
+  # Extract nodes from the network
+  nodes <- st_as_sf(network, "nodes")
+  
+  # Create a starting point from given coordinates
+  start_point <- st_sfc(st_point(start_point_coords), crs = st_crs(network))
+  start_point_sf <- st_as_sf(start_point)
+  
+  # Find the nearest node to the starting point
+  start_node <- st_nearest_feature(start_point_sf, nodes)
+  
+  # Transform healthcare facilities to the same CRS as the network
+  healthcare_facilities <- st_transform(healthcare_facilities, crs = st_crs(network))
+  
+  # Calculate distances from the starting point to each healthcare facility
+  healthcare_facilities$distance <- st_distance(start_point_sf, healthcare_facilities) %>%
+    units::set_units("meters") %>%
+    as.numeric()
+  
+  # Find the nearest hospital (minimum distance)
+  nearest_hospital <- healthcare_facilities %>%
+    arrange(distance) %>%
+    slice(1)
+  
+  # Find the nearest node to the nearest hospital
+  nearest_hospital_node <- st_nearest_feature(nearest_hospital, nodes)
+  
+  # Convert the network to a tbl_graph for igraph processing
+  network_tg <- as_tbl_graph(network)
+  
+  # Find the shortest path using igraph
+  shortest_path_igraph <- shortest_paths(network_tg, from = start_node, to = nearest_hospital_node, weights = E(network_tg)$weight, output = "both")
+  
+  # Extract the shortest path vertices
+  path_vertices <- shortest_path_igraph$vpath[[1]]
+  
+  # Convert path vertices to edge IDs
+  path_edges <- as.data.frame(igraph::as_edgelist(network_tg))
+  colnames(path_edges) <- c("from", "to")
+  path_edges <- path_edges %>%
+    filter((from %in% path_vertices) & (to %in% path_vertices))
+  
+  # Ensure the edges are in the correct order
+  path_edges <- path_edges %>%
+    rowwise() %>%
+    mutate(edge_id = igraph::get.edge.ids(network_tg, c(from, to))) %>%
+    pull(edge_id)
+  
+  # Convert network to sf and assign edge IDs
+  network_sf <- network %>%
+    activate(edges) %>%
+    mutate(edge_id = row_number()) %>%
+    st_as_sf()
+  
+  # Extract path edges as sf
+  path_edges_sf <- network_sf %>%
+    filter(edge_id %in% path_edges)
+  
+  # Return the path edges as sf and the total distance
+  return(list(path_edges_sf = path_edges_sf, nearest_hospital = nearest_hospital, total_distance = sum(st_length(path_edges_sf$geometry))))
+}
+
+# Define the network data and healthcare facilities (for illustration purposes)
+network_data <- ontario_roads_linestring  # Example network data
+healthcare_facilities <- unique_healthcare_facilities  # Example healthcare facilities
+
+# Calculate the shortest path between the top location and the random point
+shortest_path_results <- calculate_shortest_path(top_location_coords, random_point_coords, network_data)
+shortest_path_edges_sf <- shortest_path_results$path_edges_sf
+shortest_path_distance <- shortest_path_results$total_distance
+
+# Calculate the path to the nearest hospital from the random point
+hospital_path_results <- calculate_paths_to_nearest_hospital(random_point_coords, healthcare_facilities, network_data)
+hospital_path_edges_sf <- hospital_path_results$path_edges_sf
+nearest_hospital <- hospital_path_results$nearest_hospital
+hospital_path_distance <- hospital_path_results$total_distance
+nearest_hospital_sf <- st_as_sf(nearest_hospital)
+nearest_hospital_coords <- st_coordinates(nearest_hospital_sf)
+```
+
+```{r, include= FALSE}
+# Convert coordinates to sf point objects
+random_point_sf <- st_sfc(st_point(random_point_coords), crs = st_crs(network_data))
+top_location_sf <- st_sfc(st_point(top_location_coords), crs = st_crs(network_data))
+nearest_hospital_sf <- st_sfc(st_point(nearest_hospital_coords), crs = st_crs(network_data))
+
+buffered_area <- st_buffer(random_point_sf, dist = 3000)
+
+# Create the bounding box from the buffered area
+bbox <- st_bbox(buffered_area)
+
+# Create a polygon from the bounding box
+bbox_polygon <- st_as_sfc(st_bbox(buffered_area))
+
+# Clip the network data to the bounding box polygon
+network_clipped <- st_intersection(network_data, bbox_polygon)
+
+```
+
+```{r, echo= FALSE, fig.cap="Shortest Path from random point to existing and new hospital locations", fig.width=5, fig.height=4}
+tm_shape(network_clipped) +
+  tm_lines(col = "grey", legend.show = TRUE) +
+  tm_shape(shortest_path_edges_sf) +
+  tm_lines(col = "red", lwd = 2) +
+  tm_shape(hospital_path_edges_sf) +
+  tm_lines(col = "blue", lwd = 2) +
+  tm_shape(top_location_sf) +
+  tm_dots(col = "green", size = 0.5, shape = 21, border.col = "black") +
+  tm_shape(random_point_sf) +
+  tm_dots(col = "purple", size = 0.5, shape = 21, border.col = "black") +
+  tm_shape(nearest_hospital_sf) +
+  tm_dots(col = "orange", size = 0.5, shape = 21, border.col = "black") +
+  tm_shape(buffered_area) +
+  tm_borders(col = "black", lwd = 2, lty = 2) +
+  tm_layout(legend.outside = TRUE,
+            frame = FALSE,
+            legend.text.size = 0.4,
+            legend.position = c("right", "bottom")) +
+  tm_add_legend(type = "line", col = c("blue","red"), labels = c("Shortest Path to Optimal location", "Path to Nearest existing Hospital")) +
+  tm_add_legend(type = "symbol", col = c("orange", "purple", "green"), labels = c("Optimal New location", "Random Patient Location", "Nearest Existing Hospital")) +
+  tm_view(bbox = bbox)
+```
+
+Figure 13 shows the shortest travel paths from a randomly selected point (potential patient location) within an underserved area to both the nearest existing hospital (green dot) and the newly proposed hospital location (orange dot). The red line represents the route to the new proposed hospital, while the blue line shows the route to the nearest existing hospital. The current existing location of the facility is more than 5 kms away from a random patient location in the underserved regions, so the suggested new location for the hospital  is at a point which can be easily accessed by larger number of people such that they have to travel less.
+
+The comparison indicates that the proposed new hospital in the underserved region is strategically placed to be easily accessible, offering a travel route that is just as efficient as the one leading to the nearest existing hospital. This suggests that the new facility could effectively improve healthcare access for people in this underserved area, reducing travel time in emergencies and easing the load on existing hospitals.
+
+# 7. Limitations
+While the analysis conducted in this project provides valuable insights into healthcare accessibility and the identification of optimal locations for new healthcare facilities in Toronto, there are several limitations that should be acknowledged:
+
+## 7.1. Edge Location Considerations:
+The analysis focused exclusively on healthcare facilities within the boundaries of Toronto. Consequently, areas located near the city's edges might appear underserved, even though they may have access to healthcare facilities just outside Toronto's borders. These external facilities were not included in the analysis, which could potentially misrepresent the true accessibility for residents in these border areas.
+
+## 7.2. Generalizability:
+The methods and findings of this project are specific to Toronto and its unique urban landscape. While the spatial analysis techniques used, such as Kriging and IDW, are broadly applicable, the specific results and identified locations may not be directly transferable to other cities or regions without adjustments for local context. Factors such as population density, urban infrastructure, and the existing distribution of healthcare facilities vary widely between locations, limiting the generalizability of these findings.
+
+## 7.3. Data Limitations:
+The quality and completeness of the data used in this project significantly influenced the outcomes. The analysis relied on available census data, healthcare facility locations, and road network data. Any inaccuracies, outdated information, or missing data within these datasets could affect the accuracy of the results. Additionally, the analysis assumed that all healthcare facilities provide equivalent levels of service, without differentiating between types of facilities or the range of services offered, which might not fully capture the nuances of healthcare accessibility.
+
+These limitations highlight areas where further research and refined data collection could enhance the robustness of the findings and improve the strategic planning of healthcare services in Toronto.
+
+# 8. Future Scope
+The findings of this project open up several avenues for future research and improvements in healthcare accessibility analysis for Toronto. Below are some key areas where further work could enhance the scope and impact of this research:
+
+## 8.1. Real-Time Traffic Data Integration:
+Incorporating real-time traffic data into the analysis could significantly improve the accuracy of the shortest route calculations. Traffic conditions in Toronto can vary widely throughout the day, impacting the accessibility of healthcare facilities. By integrating live traffic information, future studies could provide more precise estimates of travel times, particularly in emergency situations, leading to better-informed decisions about the placement of new healthcare facilities.
+
+## 8.2. Commercial Space Availability:
+Identifying suitable commercial spaces in the suggested locations for building new healthcare facilities is a crucial next step. Future research could involve mapping available commercial properties and analyzing their suitability based on factors such as size, accessibility, zoning regulations, and proximity to public transportation. This would help in assessing the feasibility of constructing new facilities in the identified areas.
+
+## 8.3. Disability Population-Specific Analysis:
+While this project focused on the elderly and low-income populations, future studies could expand the scope to include a more detailed analysis of healthcare accessibility for people with disabilities. This could involve mapping facilities that offer specialized services, evaluating the accessibility of transportation networks, and identifying areas where additional support is needed to ensure equitable healthcare access for this vulnerable population.
+
+## 8.4. Incorporating Facility Capacity (Available Beds):
+Another critical factor to consider in future analyses is the capacity of existing healthcare facilities, particularly the number of available beds. Incorporating this data would allow for a more nuanced understanding of healthcare accessibility, as areas with a high density of facilities but limited capacity may still be underserved. This would enable more accurate predictions and better planning for the distribution of healthcare resources across Toronto.
+
+By addressing these areas, future research can build on the findings of this project to create a more comprehensive and effective strategy for improving healthcare accessibility in Toronto. These enhancements would contribute to a more equitable distribution of healthcare services, ensuring that all residents have timely access to the care they need.
+
+# 9. Conclusion
+The project focused on identifying optimal locations for new healthcare facilities in Toronto by analyzing accessibility for vulnerable populations, particularly the elderly and low-income residents. By employing advanced spatial analysis methods, we were able to highlight key underserved areas across the city. The MCDA approach allowed us to weigh various factors such as population density, income levels, and existing healthcare facility locations, helping us prioritize the most critical areas for new facilities. The Kriging and IDW methods were used to predict the necessity of new healthcare facilities in the underserved regions. By integrating these methods with a shortest route analysis, we ensured that the proposed new locations would not only address gaps in healthcare access but also be easily reachable in emergencies. Overall, this comprehensive analysis provides actionable insights that can help reduce healthcare disparities in Toronto, ensuring more equitable access to essential services for all residents.
+
+# References
+## Data sources
+1. Ministry of Health Ontario (2024) Ministry of Health Service Provider Locations. GeoHub Ontario,2024. https://geohub.lio.gov.on.ca/datasets/ministry-of-health-service-providerlocations/explore.
+2. City of Toronto. (n.d.). Traffic Volumes at Intersections for All Modes. Retrieved from https://open.
+toronto.ca/dataset/traffic-volumes-at-intersections-for-all-modes/
+3. City of Toronto. (2024). Ward Profiles 25 Ward Model. Retrieved from https://open.toronto.ca/
+dataset/ward-profiles-25-ward-model/
+
+## Additional References
+1. Shah, T. I., Bell, S., & Wilson, K. (2016). Spatial accessibility to health care services: Identifying under-serviced neighbourhoods in Canadian urban areas. PLoS ONE, 11(12), e0168208. https://doi.org/10.1371/journal.pone.0168208
+2. Luo, W., & Wang, F. (2019). A geospatial approach to understanding inequalities in accessibility to primary care among vulnerable populations. PLoS ONE, 14(1), e0210113. https://doi.org/10.1371/journal.pone.0210113
+3. Laverty, M., & Dixon, J. (2021). Geographical disparities in access to hospital care in Ontario, Canada: a spatial coverage modelling approach. BMJ Open, 11(1), e041474. https://doi.org/10.1136/bmjopen-2020-041474
+4. Healthcare Inequalities in Urban Areas. National Center for Biotechnology Information. Retrieved from https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6964368/
+5. Ahmad, J., Nazir, M., & Shafiq, M. U. (2022). Enhanced two-step floating catchment area (E2SFCA) method for measuring spatial accessibility to primary healthcare in HD Kote, Mysore (India). In P. S. Kanaroglou, S. Paez, & C. F. S. Li (Eds.), *Recent developments in spatial analysis and decision making* (pp. 239-260). Springer. https://doi.org/10.1007/978-3-031-06443-2_14
+6. Sun, M., Chao, G., Xue, C., & Li, C. (2021). A data-driven method for measuring accessibility to healthcare using the spatial interpolation model. IEEE Access, 9, 64972-64982. https://doi.org/10.1109/ACCESS.2021.3075494
